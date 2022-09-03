@@ -2,11 +2,13 @@
 #include <ArduinoJson.h>      // https://arduinojson.org/
 #include <WebSocketsClient.h> // download and install from https://github.com/Links2004/arduinoWebSockets
 #include <SocketIOclient.h>
+#include <Servo.h>
 
 #define SSID "DR"
 #define PASSWORD "@A12345678#"
 #define SERVER "192.168.100.4" // Server URL (without https://www)
 
+Servo servo;
 SocketIOclient socketIO;
 
 void messageHandler(uint8_t *payload)
@@ -27,6 +29,10 @@ void messageHandler(uint8_t *payload)
   if (messageKey == "buttonState")
   {
     digitalWrite(LED_BUILTIN, value);
+
+    servo.write(70);
+    delay(1000);
+    servo.write(170);
     // socketIO.sendEVENT("logging:1");
     DynamicJsonDocument doc(1024);
     JsonArray array = doc.to<JsonArray>();
@@ -38,9 +44,9 @@ void messageHandler(uint8_t *payload)
 
     // add payload (parameters) for the event
     JsonObject param1 = array.createNestedObject();
-     param1["now"] = (uint32_t) now;
+    param1["now"] = (uint32_t)now;
 
- Serial.println(array);
+    Serial.println(array);
     // JSON to String (serializion)
     String output;
     serializeJson(doc, output);
@@ -92,6 +98,9 @@ void setupWiFi()
 void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);
+
+  servo.attach(D8);
+  servo.write(170);
 
   Serial.begin(9600);
 
