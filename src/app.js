@@ -26,6 +26,10 @@ io.on('connection', socket => {
         buttonState = value;
         socket.broadcast.emit('buttonState', value);
     });
+    socket.on('logging', value => {
+        console.log('log:', value);
+        socket.broadcast.emit('logging', value);
+    });
 });
 
 httpServer.listen(PORT, () => {

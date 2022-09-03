@@ -1,22 +1,22 @@
 #include <ESP8266WiFi.h>
-#include <ArduinoJson.h>       // https://arduinojson.org/
-#include <WebSocketsClient.h>  // download and install from https://github.com/Links2004/arduinoWebSockets
+#include <ArduinoJson.h>      // https://arduinojson.org/
+#include <WebSocketsClient.h> // download and install from https://github.com/Links2004/arduinoWebSockets
 #include <SocketIOclient.h>
 
-#define SSID "Your WiFi SSID"
-#define PASSWORD "Your WiFi password"
-#define SERVER "esp-socket-switch.herokuapp.com"  // Server URL (without https://www)
-
+#define SSID "DR"
+#define PASSWORD "@A12345678#"
+#define SERVER "192.168.100.4" // Server URL (without https://www)
 
 SocketIOclient socketIO;
 
-
-void messageHandler(uint8_t* payload) {
+void messageHandler(uint8_t *payload)
+{
   StaticJsonDocument<64> doc;
 
   DeserializationError error = deserializeJson(doc, payload);
 
-  if (error) {
+  if (error)
+  {
     Serial.println(error.f_str());
     return;
   }
@@ -24,35 +24,63 @@ void messageHandler(uint8_t* payload) {
   String messageKey = doc[0];
   bool value = doc[1];
 
-  if (messageKey == "buttonState") {
+  if (messageKey == "buttonState")
+  {
     digitalWrite(LED_BUILTIN, value);
+    // socketIO.sendEVENT("logging:1");
+    DynamicJsonDocument doc(1024);
+    JsonArray array = doc.to<JsonArray>();
+
+    // add evnet name
+    // Hint: socket.on('event_name', ....
+    uint64_t now = millis();
+    array.add("logging");
+
+    // add payload (parameters) for the event
+    JsonObject param1 = array.createNestedObject();
+     param1["now"] = (uint32_t) now;
+
+ Serial.println(array);
+    // JSON to String (serializion)
+    String output;
+    serializeJson(doc, output);
+
+    // Send event
+    socketIO.sendEVENT(output);
+
+    // Print JSON for debugging
+    Serial.println(output);
   }
 }
 
-void socketIOEvent(socketIOmessageType_t type, uint8_t* payload, size_t length) {
-  switch (type) {
-    case sIOtype_DISCONNECT:
-      Serial.println("Disconnected!");
-      break;
+void socketIOEvent(socketIOmessageType_t type, uint8_t *payload, size_t length)
+{
+  switch (type)
+  {
+  case sIOtype_DISCONNECT:
+    Serial.println("Disconnected!");
+    break;
 
-    case sIOtype_CONNECT:
-      Serial.printf("Connected to url: %s%s\n", SERVER, payload);
+  case sIOtype_CONNECT:
+    Serial.printf("Connected to url: %s%s\n", SERVER, payload);
 
-      // join default namespace (no auto join in Socket.IO V3)
-      socketIO.send(sIOtype_CONNECT, "/");
-      break;
+    // join default namespace (no auto join in Socket.IO V3)
+    socketIO.send(sIOtype_CONNECT, "/");
+    break;
 
-    case sIOtype_EVENT:
-      messageHandler(payload);
-      break;
+  case sIOtype_EVENT:
+    messageHandler(payload);
+    break;
   }
 }
 
-void setupWiFi() {
+void setupWiFi()
+{
   Serial.println("\nConnecting...");
 
   WiFi.begin(SSID, PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     Serial.print(".");
     delay(500);
   }
@@ -61,8 +89,8 @@ void setupWiFi() {
   Serial.println(WiFi.localIP());
 }
 
-
-void setup() {
+void setup()
+{
   pinMode(LED_BUILTIN, OUTPUT);
 
   Serial.begin(9600);
@@ -70,11 +98,12 @@ void setup() {
   setupWiFi();
 
   // server address, port and URL
-  socketIO.begin(SERVER, 80, "/socket.io/?EIO=4");
+  socketIO.begin(SERVER, 4001, "/socket.io/?EIO=4");
 
   socketIO.onEvent(socketIOEvent);
 }
 
-void loop() {
+void loop()
+{
   socketIO.loop();
 }
