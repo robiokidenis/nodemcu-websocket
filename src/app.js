@@ -17,9 +17,9 @@ io.on('connection', socket => {
     connected++;
     console.log('New Connection client ',connected);
     io.to(socket.id).emit('buttonState', buttonState);
-
-    io.to(socket.id).emit("update",{
-        clients:connected,
+   
+    socket.broadcast.emit("update",{
+        clients:connected
     });
 
     socket.on('disconnect', () => {
