@@ -18,7 +18,7 @@ io.on('connection', socket => {
     console.log('New Connection client ',connected);
     io.to(socket.id).emit('buttonState', buttonState);
    
-    socket.broadcast.emit("update",{
+    io.to(socket.id).emit("update",{
         clients:connected
     });
 
