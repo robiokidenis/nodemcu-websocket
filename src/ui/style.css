@@ -45,3 +45,12 @@ body {
 #toggleBtn.on:hover {
     box-shadow: mediumaquamarine 0px 14px 28px;
 }
+#floating-count{
+        position: fixed;
+        right: 10px !important;
+        bottom: 10px !important;
+}
+#floating-count::after{
+    content: " Online";
+
+}

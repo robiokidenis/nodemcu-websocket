@@ -11,14 +11,23 @@ const io = new Server(httpServer, { cors: { origin: '*' } });
 app.use(express.static('src/ui'));
 
 let buttonState = false;
-
+var connected = 0;
 io.on('connection', socket => {
-    console.log('New Connection');
 
+    connected++;
+    console.log('New Connection client ',connected);
     io.to(socket.id).emit('buttonState', buttonState);
 
+    io.to(socket.id).emit("update",{
+        clients:connected,
+    });
+
     socket.on('disconnect', () => {
-        console.log('Disconnected');
+        connected--;
+        console.log('Disconnected ',connected);
+        socket.broadcast.emit("update",{
+            clients:connected
+        });
     });
 
     socket.on('buttonState', value => {
@@ -31,6 +40,7 @@ io.on('connection', socket => {
         socket.broadcast.emit('logging', value);
     });
 });
+
 
 httpServer.listen(PORT, () => {
     console.log('Running on : ', httpServer.address());

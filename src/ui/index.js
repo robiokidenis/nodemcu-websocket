@@ -22,10 +22,15 @@ const updateUI = () => {
 socket.on('buttonState', state => {
     console.log('updated state', state);
     buttonState = state;
-   
+
 });
 socket.on('logging', state => {
     console.log('Hitted', state);
     // document.getElementById('tlogging').value=JSON.parse(state);
     updateUI();
+});
+
+socket.on("update", state => {
+    console.log(state);
+    document.getElementById('floating-count').innerText = state.clients;
 });
